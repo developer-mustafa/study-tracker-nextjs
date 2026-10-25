@@ -1,0 +1,6 @@
+{
+  "name": "FocusStudy - Bengali Study Productivity App",
+  "description": "মনোযোগ দিয়ে পড়ো, লক্ষ্য পূরণ করো - Bengali study productivity platform with focus timer, study plans, task tracking, and analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

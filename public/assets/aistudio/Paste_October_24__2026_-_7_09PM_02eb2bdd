@@ -1,0 +1,1422 @@
+# FOCUSSTUDY — COMPLETE APPLICATION DEVELOPMENT PROMPT
+
+## 1. Your Role
+
+Act as a Senior Next.js Engineer, Firebase Architect, UI/UX Designer, Database Engineer, Security Engineer, and QA Automation Engineer.
+
+Build a complete, production-oriented Bengali-language study productivity application named FocusStudy.
+
+The application must be fully functional, responsive, secure, and ready for future monetization.
+
+Use the provided dashboard screenshot as the primary UI/UX reference.
+
+Do not build only a static dashboard or a visual prototype. Implement working features, real Firebase integration, persistent user data, validated forms, functional navigation, timer logic, analytics, subscription architecture, and security rules.
+
+Inspect the existing project before changing any files.
+
+---
+
+## 2. Product Overview
+
+Application name: FocusStudy
+
+Primary language: Bengali
+
+Tagline:
+
+"মনোযোগ দিয়ে পড়ো, লক্ষ্য পূরণ করো"
+
+Purpose:
+
+Help students organize study plans, complete tasks, use focused study sessions, track learning progress, maintain study streaks, and improve productivity.
+
+Target users:
+- স্কুল শিক্ষার্থী
+- কলেজ শিক্ষার্থী
+- বিশ্ববিদ্যালয় শিক্ষার্থী
+- ভর্তি পরীক্ষার্থী
+- চাকরিপ্রার্থী
+- প্রোগ্রামিং শিক্ষার্থী
+- স্বশিক্ষায় আগ্রহী ব্যক্তি
+
+All user-facing text must be in natural Bengali, including:
+- Navigation
+- Buttons
+- Forms
+- Validation errors
+- Notifications
+- Dashboard labels
+- Charts
+- Empty states
+- Dialogs
+- Settings
+- Pricing
+- Subscription messages
+- Authentication screens
+
+Technical identifiers, source code, database fields, and internal developer documentation may use English.
+
+Use a Bengali-compatible font such as Hind Siliguri or Noto Sans Bengali.
+
+---
+
+## 3. REQUIRED TECHNOLOGY STACK
+
+Use the following technologies:
+
+### Frontend
+- Next.js with App Router
+- React
+- JavaScript, not TypeScript
+- Tailwind CSS
+- CSS custom properties for theme variables
+- Lucide React for icons
+- Recharts for charts
+- React Hook Form for complex forms where useful
+- Zod for validation where appropriate
+- date-fns for date calculations
+- A compatible toast notification library
+
+### Backend
+- Next.js Server Components
+- Next.js Client Components
+- Next.js Route Handlers
+- Server Actions where appropriate
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Storage when needed
+- Firebase Admin SDK for trusted server-side operations
+- Firebase Cloud Functions for asynchronous or scheduled operations where needed
+
+### Testing
+- Vitest
+- React Testing Library
+- Firebase Emulator Suite
+- Playwright for critical end-to-end tests
+
+### Deployment
+- Next.js-compatible Node.js hosting or a compatible server deployment
+- Firebase services for authentication, database, storage, and backend functions
+
+Use current stable, mutually compatible versions.
+
+Do not use Pages Router for new application routes.
+
+Do not introduce unnecessary state-management libraries.
+
+Do not convert the project to TypeScript unless explicitly requested.
+
+---
+
+## 4. NEXT.JS ARCHITECTURE RULES
+
+Use the Next.js App Router.
+
+Use Server Components by default.
+
+Use "use client" only for components that require:
+- React state
+- Event handlers
+- Browser APIs
+- Interactive charts
+- Focus timer controls
+- Theme switching
+- Client-side Firebase Authentication listeners
+
+Keep Firebase Admin SDK code exclusively on the server.
+
+Never import Firebase Admin modules into Client Components.
+
+Never expose service-account credentials or private keys in browser bundles.
+
+Use server-only modules for privileged operations.
+
+Suggested modules:
+- lib/firebase/client.js
+- lib/firebase/admin.js
+- lib/firebase/auth.js
+- lib/firebase/firestore.js
+- lib/firebase/verify-session.js
+
+The client Firebase SDK may be used for permitted user-owned Firestore operations.
+
+The Firebase Admin SDK may be used only in trusted server environments.
+
+Validate every privileged server operation independently. Do not assume that hiding a button or protecting a page guarantees authorization.
+
+Use the Node.js runtime for handlers that require Firebase Admin SDK compatibility.
+
+Do not rely on Edge Runtime compatibility unless the required Firebase packages support the selected runtime.
+
+Use Next.js middleware only for suitable preliminary routing or navigation checks. Perform authoritative authentication and authorization checks on the server.
+
+---
+
+## 5. REQUIRED PROJECT STRUCTURE
+
+Build a maintainable structure similar to:
+
+src/
+  app/
+    layout.js
+    page.js
+    globals.css
+
+    (auth)/
+      login/
+        page.js
+      register/
+        page.js
+      forgot-password/
+        page.js
+      verify-email/
+        page.js
+
+    (dashboard)/
+      layout.js
+      dashboard/
+        page.js
+      focus-timer/
+        page.js
+      study-plans/
+        page.js
+      tasks/
+        page.js
+      subjects/
+        page.js
+      progress/
+        page.js
+      notes/
+        page.js
+      achievements/
+        page.js
+      calendar/
+        page.js
+      notifications/
+        page.js
+      settings/
+        page.js
+      profile/
+        page.js
+      pricing/
+        page.js
+
+    admin/
+      layout.js
+      page.js
+      users/
+        page.js
+      subscriptions/
+        page.js
+      settings/
+        page.js
+
+    api/
+      auth/
+        session/
+          route.js
+        logout/
+          route.js
+      focus-sessions/
+        route.js
+      subscriptions/
+        checkout/
+          route.js
+        webhook/
+          route.js
+
+    not-found.js
+    error.js
+    loading.js
+
+  components/
+    layout/
+      app-sidebar.js
+      app-header.js
+      mobile-navigation.js
+
+    dashboard/
+      welcome-card.js
+      summary-card.js
+      study-time-chart.js
+      subject-progress.js
+      recent-activity.js
+
+    timer/
+      focus-timer.js
+      timer-display.js
+      timer-controls.js
+      session-summary.js
+
+    tasks/
+      task-list.js
+      task-form.js
+      task-filters.js
+
+    study-plans/
+      study-plan-list.js
+      study-plan-form.js
+      study-plan-details.js
+
+    common/
+      button.js
+      card.js
+      modal.js
+      input.js
+      select.js
+      progress-bar.js
+      loading-state.js
+      empty-state.js
+      error-state.js
+
+  contexts/
+    theme-context.js
+    auth-context.js
+
+  hooks/
+    use-focus-timer.js
+    use-study-sessions.js
+    use-tasks.js
+    use-study-plans.js
+
+  lib/
+    firebase/
+      client.js
+      admin.js
+      verify-session.js
+
+    services/
+      auth-service.js
+      user-service.js
+      subject-service.js
+      study-plan-service.js
+      task-service.js
+      session-service.js
+      analytics-service.js
+      notes-service.js
+      notification-service.js
+      subscription-service.js
+
+    utils/
+      date-utils.js
+      duration-utils.js
+      formatters.js
+      validation.js
+
+  actions/
+    task-actions.js
+    study-plan-actions.js
+    profile-actions.js
+
+  styles/
+    theme.css
+
+functions/
+  src/
+    index.js
+
+tests/
+  unit/
+  integration/
+  e2e/
+
+firestore.rules
+firestore.indexes.json
+firebase.json
+.env.example
+.gitignore
+README.md
+
+Adjust this structure if necessary, but preserve separation between UI, business logic, Firebase access, and privileged backend operations.
+
+Do not create empty files merely to match the structure.
+
+---
+
+## 6. DESIGN SYSTEM
+
+Reproduce the quality of the supplied dashboard reference.
+
+The design should feel like a premium study productivity SaaS product.
+
+### Light theme
+
+- Background: #F5F7FC
+- Cards: #FFFFFF
+- Primary text: #17233F
+- Secondary text: #77839B
+- Primary accent: #5B5CE2
+- Secondary accent: #8B5CF6
+- Success: #16B981
+- Warning: #F59E0B
+- Danger: #EF4444
+- Borders: #E6EAF2
+
+### Dark theme
+
+- Background: #071225
+- Cards: #0D1B32
+- Secondary surfaces: #122440
+- Primary text: #F1F5FF
+- Secondary text: #A7B5CC
+- Primary accent: #6865F2
+- Success: #10D9A0
+- Borders: #243754
+
+### UI requirements
+
+- Rounded cards
+- Subtle shadows
+- Clear visual hierarchy
+- Consistent spacing
+- Soft gradients for selected highlights
+- Readable Bengali typography
+- Accessible contrast
+- Smooth but restrained transitions
+- Responsive charts
+- Proper loading skeletons
+- Clear empty states
+- Functional dropdown menus
+- Accessible modal dialogs
+- Responsive forms
+- No horizontal overflow on mobile
+
+Use CSS variables for theme colors.
+
+Use Tailwind CSS for layout and component styling.
+
+Use custom CSS only when it provides a clear advantage.
+
+Avoid excessive gradients, distracting animation, and unnecessary glass effects.
+
+---
+
+## 7. RESPONSIVE APPLICATION LAYOUT
+
+### Desktop
+
+Create:
+- Collapsible left sidebar
+- Top navigation bar
+- Search or quick-navigation control
+- Notification button
+- Theme toggle
+- Profile dropdown
+- Main content area
+- Responsive dashboard grid
+
+### Tablet
+
+- Compact sidebar
+- Adaptive card columns
+- Readable chart labels
+- Touch-friendly controls
+
+### Mobile
+
+- Compact top header
+- Mobile navigation drawer or bottom navigation
+- Single-column cards where appropriate
+- Large timer controls
+- Responsive forms
+- Charts that fit the viewport
+- No fixed-width desktop-only components
+
+The navigation must be fully functional.
+
+Every menu item must open its corresponding route.
+
+---
+
+## 8. AUTHENTICATION
+
+Implement Firebase Authentication with:
+
+- Email registration
+- Email/password login
+- Logout
+- Password reset
+- Email verification
+- Google sign-in when configured
+
+Create an onboarding flow.
+
+Collect:
+- Display name
+- Study level
+- Main study goal
+- Subjects
+- Daily target in minutes
+- Preferred study days
+- Preferred focus duration
+
+After registration:
+1. Create the Firebase Authentication account.
+2. Create the user profile.
+3. Initialize settings.
+4. Initialize the free-plan entitlement.
+5. Save onboarding information.
+6. Navigate to the dashboard.
+
+Prevent duplicate profile creation.
+
+Display all errors in Bengali.
+
+Handle expired sessions and account changes.
+
+### Secure session handling
+
+For the protected application experience, implement a secure session architecture where appropriate.
+
+Use a server-verified session cookie with:
+- HttpOnly
+- Secure in production
+- SameSite protection
+- Appropriate expiration
+- Proper logout invalidation
+
+If using Firebase ID tokens to establish the session cookie, verify the token on the server before creating the cookie.
+
+Never accept a UID supplied by the client as proof of identity.
+
+Never place sensitive authentication tokens in ordinary localStorage.
+
+Protect session-creation endpoints against CSRF and verify authentication state.
+
+Ensure client-side and server-side authentication remain consistent.
+
+---
+
+## 9. DASHBOARD
+
+Build a complete personalized dashboard.
+
+### Welcome section
+
+Show:
+- Personalized Bengali greeting
+- User display name
+- Current localized date
+- Motivational message
+- Today's study goal
+- Quick-start timer button
+
+### Summary cards
+
+Create cards for:
+- আজকের পড়ার সময়
+- মোট পড়ার সময়
+- সম্পন্ন কাজ
+- ফোকাস সেশন
+- বর্তমান স্টাডি স্ট্রিক
+- আজকের লক্ষ্য পূরণ
+
+All numbers must come from actual user data.
+
+Do not hardcode fake production analytics.
+
+### Charts
+
+Create:
+- Daily study duration
+- Weekly study duration
+- Monthly study duration
+- Subject-wise study time
+- Completed versus pending tasks
+- Daily goal completion
+
+Period filters:
+- আজ
+- শেষ ৭ দিন
+- শেষ ৩০ দিন
+- এই মাস
+
+Use Recharts.
+
+Use Bengali labels and tooltips.
+
+Handle missing data and empty states.
+
+### Recent activity
+
+Show:
+- Completed focus sessions
+- Completed tasks
+- Created study plans
+- Achievements unlocked
+- Daily goals reached
+
+Display actual event timestamps.
+
+---
+
+## 10. FOCUS TIMER
+
+Implement a fully functional timer.
+
+### Modes
+
+- ফোকাস
+- ছোট বিরতি
+- বড় বিরতি
+- কাস্টম টাইমার
+
+Default:
+- Focus: 25 minutes
+- Short break: 5 minutes
+- Long break: 15 minutes
+
+Allow custom durations.
+
+### Controls
+
+- শুরু করুন
+- বিরতি দিন
+- আবার শুরু করুন
+- সেশন বাতিল করুন
+- রিসেট
+- ফোকাস সম্পন্ন করুন
+
+Display:
+- Remaining time
+- Circular progress
+- Current mode
+- Selected subject
+- Linked task
+- Today's session count
+- Today's focused duration
+
+### Timer correctness
+
+Do not implement the timer as a counter that blindly subtracts one second on every interval.
+
+Use an absolute deadline.
+
+Store:
+- Session ID
+- Mode
+- Planned duration
+- Start timestamp
+- End timestamp
+- Pause state
+- Remaining time when paused
+- Session status
+
+Calculate remaining time from the current timestamp and the saved deadline.
+
+Handle:
+- Browser refresh
+- Tab suspension
+- Route changes
+- Device sleep
+- Pause/resume
+- Network interruptions
+- Duplicate completion events
+
+When paused, freeze the remaining duration.
+
+When resumed, calculate a new deadline.
+
+On completion:
+1. Prevent duplicate processing.
+2. Persist the completed session.
+3. Record actual focused time.
+4. Update progress and statistics through the appropriate service.
+5. Show a Bengali success message.
+6. Offer the next focus session or break.
+
+Cancelled sessions must not count as completed.
+
+Break duration must never count as focused study time.
+
+Do not count the full planned duration if a session was abandoned early.
+
+Use stable session IDs and idempotent writes.
+
+Do not allow a client to modify arbitrary historical durations to manipulate analytics.
+
+Document limitations when sessions run offline or when the browser is closed.
+
+---
+
+## 11. STUDY PLANS
+
+Implement complete CRUD operations:
+
+- Create plan
+- View plan
+- Edit plan
+- Delete plan
+- Duplicate plan
+- Add topics
+- Complete topics
+- Assign subjects
+- Set target dates
+- Set target minutes
+- Configure weekly study days
+
+Plan statuses:
+- পরিকল্পিত
+- চলমান
+- সম্পন্ন
+- স্থগিত
+
+Store:
+- Title
+- Description
+- Subject IDs
+- Start date
+- Target date
+- Target minutes
+- Completed minutes
+- Status
+- Created timestamp
+- Updated timestamp
+
+Use subcollections for large topic lists when appropriate.
+
+Calculate progress from completed topics and actual session records.
+
+Preserve historical study records if a plan or subject is archived.
+
+---
+
+## 12. TASK MANAGEMENT
+
+Implement:
+- Create task
+- Edit task
+- Delete task
+- Complete task
+- Reopen task
+- Set priority
+- Set deadline
+- Assign subject
+- Link a study plan
+- Search tasks
+- Filter tasks
+- Sort by deadline
+
+Priority levels:
+- কম
+- মাঝারি
+- উচ্চ
+- জরুরি
+
+Statuses:
+- অপেক্ষমাণ
+- চলমান
+- সম্পন্ন
+- বাতিল
+
+Filters:
+- সব কাজ
+- আজকের কাজ
+- আসন্ন কাজ
+- সম্পন্ন কাজ
+- অসম্পন্ন কাজ
+- সময় পেরিয়ে গেছে
+
+Validate all forms.
+
+Show Bengali success and error messages.
+
+Confirm destructive operations.
+
+Do not mark tasks completed automatically unless the user explicitly triggers the operation or has enabled a clearly documented workflow.
+
+---
+
+## 13. SUBJECT MANAGEMENT
+
+Implement subject CRUD.
+
+Fields:
+- Name
+- Color
+- Icon
+- Target minutes
+- Description
+- Archived status
+
+Allow users to:
+- Create subjects
+- Edit subjects
+- Change colors
+- Configure goals
+- Archive subjects
+- View subject-wise sessions
+- Compare study durations
+
+Example subjects:
+- বাংলা
+- ইংরেজি
+- গণিত
+- পদার্থবিজ্ঞান
+- রসায়ন
+- জীববিজ্ঞান
+- ICT
+- প্রোগ্রামিং
+
+---
+
+## 14. PROGRESS AND ANALYTICS
+
+Create a detailed progress page.
+
+Metrics:
+- Today's focused minutes
+- Weekly focused hours
+- Monthly focused hours
+- Total focused time
+- Completed sessions
+- Average session duration
+- Completed tasks
+- Task completion rate
+- Current streak
+- Longest streak
+- Daily goal completion
+- Subject-wise time
+
+Use actual Firestore records or trustworthy server-generated aggregates.
+
+Use Asia/Dhaka as the initial default timezone.
+
+Group dates consistently using the configured timezone.
+
+Do not use browser-local date calculations inconsistently across pages.
+
+### Streak logic
+
+A qualifying study day is a local calendar day with at least one valid completed focus session, unless the user chooses another documented threshold.
+
+Calculate:
+- Current streak
+- Longest streak
+- Total active study days
+
+Handle midnight and timezone boundaries correctly.
+
+Do not reset streaks merely because the app was not opened on a particular day.
+
+### Data integrity
+
+Prevent duplicate session counting.
+
+Use idempotent processing and trusted server operations for protected aggregates where appropriate.
+
+If aggregate documents are stored, document how they are reconciled with source records.
+
+---
+
+## 15. NOTES
+
+Create a complete notes module.
+
+Features:
+- Create
+- Edit
+- Delete
+- Search
+- Favorite
+- Filter by subject
+- Filter by tags
+- Sort by last updated
+
+Fields:
+- Title
+- Content
+- Subject ID
+- Tags
+- Favorite status
+- Created timestamp
+- Updated timestamp
+
+Do not execute user-provided HTML.
+
+Sanitize rich-text content if rich-text editing is introduced.
+
+---
+
+## 16. ACHIEVEMENTS
+
+Implement achievements such as:
+- প্রথম ফোকাস সেশন
+- ৫টি ফোকাস সেশন
+- ১০ ঘণ্টা পড়াশোনা
+- ৫ দিনের স্ট্রিক
+- ৭ দিনের স্ট্রিক
+- ৩০ দিনের স্ট্রিক
+- ২৫টি কাজ সম্পন্ন
+- প্রথম স্টাডি প্ল্যান সম্পন্ন
+
+Achievements must be awarded only when the relevant conditions are met.
+
+Prevent duplicate awards.
+
+Use Bengali descriptions and accessible icons.
+
+---
+
+## 17. CALENDAR
+
+Create:
+- Monthly view
+- Weekly view
+- Daily agenda
+- Task deadlines
+- Study plan events
+- Study session history
+- Daily study totals
+
+Allow users to:
+- Navigate months
+- Select a date
+- View that date's tasks
+- Create tasks for that date
+- Review completed sessions
+
+Use consistent timezone-aware date handling.
+
+---
+
+## 18. NOTIFICATIONS
+
+Implement an in-app notification center.
+
+Types:
+- Study reminder
+- Focus session completed
+- Task deadline
+- Goal achieved
+- Achievement unlocked
+- Subscription update
+
+Features:
+- Unread count
+- Mark as read
+- Mark all as read
+- Delete
+- Navigate to related content
+
+Request browser notification permission only when necessary and with clear user consent.
+
+Explain limitations of browser notifications when the browser is closed.
+
+Use Cloud Functions and an appropriate scheduler for reliable server-side reminders where required.
+
+---
+
+## 19. SETTINGS
+
+Implement:
+- Light mode
+- Dark mode
+- System theme
+- Daily study goal
+- Weekly study goal
+- Default timer duration
+- Short break duration
+- Long break duration
+- Auto-start break preference
+- Reminder settings
+- Timezone
+- Language preference
+
+The primary interface remains Bengali.
+
+Persist preferences in Firestore.
+
+Cache the selected theme locally to prevent flashing before the user's saved preference loads.
+
+Synchronize changes across authenticated devices.
+
+---
+
+## 20. FIREBASE DATABASE SCHEMA
+
+Use Cloud Firestore.
+
+Suggested structure:
+
+users/{uid}
+
+Fields:
+- displayName
+- email
+- photoURL
+- studyLevel
+- primaryGoal
+- timezone
+- themePreference
+- dailyGoalMinutes
+- weeklyGoalMinutes
+- onboardingCompleted
+- createdAt
+- updatedAt
+
+users/{uid}/subjects/{subjectId}
+
+users/{uid}/studyPlans/{planId}
+
+users/{uid}/studyPlans/{planId}/topics/{topicId}
+
+users/{uid}/tasks/{taskId}
+
+users/{uid}/sessions/{sessionId}
+
+users/{uid}/dailyStats/{dateKey}
+
+users/{uid}/notes/{noteId}
+
+users/{uid}/achievements/{achievementId}
+
+users/{uid}/notifications/{notificationId}
+
+users/{uid}/settings/preferences
+
+users/{uid}/subscriptions/current
+
+Additional collections where required:
+- publicPlanCatalog
+- supportRequests
+- administrativeAuditLogs
+- paymentEvents
+
+Use Firestore timestamps for date-time values.
+
+Use stable document IDs.
+
+Use subcollections where they improve ownership isolation and query design.
+
+Do not store passwords in Firestore.
+
+Do not store authoritative subscription entitlements in client-writable fields.
+
+Design indexes for the actual queries implemented.
+
+Avoid loading every historical session to calculate every dashboard view.
+
+Use appropriate pagination and carefully designed aggregate records.
+
+---
+
+## 21. FIREBASE CLIENT CONFIGURATION
+
+Create:
+
+src/lib/firebase/client.js
+
+Initialize the modular Firebase client SDK.
+
+Create a configuration example:
+
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+These values configure the public Firebase web client.
+
+They are not a substitute for authentication or database security.
+
+Do not place service account private keys in NEXT_PUBLIC environment variables.
+
+Create:
+
+.env.example
+
+Ensure .env.local is excluded from Git.
+
+Provide clear setup instructions.
+
+---
+
+## 22. FIREBASE ADMIN SDK
+
+Create:
+
+src/lib/firebase/admin.js
+
+Use Firebase Admin SDK only in trusted server-side code.
+
+Support environment-specific initialization.
+
+Avoid hardcoding service account JSON.
+
+For production, use the hosting platform's recommended service identity or a securely managed credential.
+
+If local development requires service-account credentials, document a secure local setup.
+
+Never commit private keys to source control.
+
+Keep privileged modules isolated from Client Components.
+
+---
+
+## 23. SERVER ROUTES AND ACTIONS
+
+Use Server Actions for suitable authenticated application mutations.
+
+Use Route Handlers for:
+- Session cookie creation
+- Logout
+- Payment checkout creation
+- Payment webhooks
+- Other external integrations
+
+Every privileged operation must:
+1. Verify the authenticated user.
+2. Validate all input.
+3. Enforce ownership.
+4. Enforce the user's permissions.
+5. Apply business rules.
+6. Handle failures safely.
+7. Return structured results.
+8. Avoid leaking internal secrets.
+
+For state-changing endpoints:
+- Use appropriate CSRF protection where applicable.
+- Validate request origin when appropriate.
+- Rate-limit sensitive operations where needed.
+- Validate webhook signatures.
+- Make payment processing idempotent.
+
+Do not rely on client-supplied UIDs, role flags, subscription status, or arbitrary timestamps as proof of authorization.
+
+---
+
+## 24. FIRESTORE SECURITY RULES
+
+Create firestore.rules.
+
+Requirements:
+- Deny access by default.
+- Authenticate private data access.
+- Enforce ownership.
+- Restrict writable fields.
+- Validate types and value ranges.
+- Prevent cross-user access.
+- Prevent users from changing administrator roles.
+- Protect subscription documents.
+- Protect payment events.
+- Protect private notes and session history.
+
+Remember that Firebase Admin SDK bypasses Firestore Security Rules.
+
+Every privileged server operation must enforce its own authorization.
+
+Write emulator tests for:
+- Own-data access
+- Cross-user access denial
+- Unauthenticated access denial
+- Subscription escalation denial
+- Administrator escalation denial
+- Protected field modification denial
+
+If all Firestore operations are routed through the server, restrict direct client access accordingly. If permitted client SDK operations are used, create explicit rules for those operations.
+
+Do not create permissive production rules merely to make development easier.
+
+---
+
+## 25. MONETIZATION
+
+Create a Bengali pricing page.
+
+### Free
+- Basic focus timer
+- Basic study plans
+- Basic tasks
+- Basic progress reports
+
+### Pro
+- Advanced analytics
+- Extended study history
+- Multiple study plans
+- Exportable reports
+- Advanced customization
+
+### Premium
+- All Pro features
+- Smart study suggestions
+- Advanced planning tools
+- Additional productivity features
+
+Implement a centralized entitlement service.
+
+Represent subscription states appropriately:
+- free
+- active
+- trialing
+- past_due
+- canceled
+- expired
+
+Paid entitlements must be verified through trusted backend logic.
+
+Do not unlock paid features simply because a client changes LocalStorage or edits a Firestore document.
+
+### Payments
+
+Prepare a payment-provider abstraction.
+
+A real payment integration must:
+- Create checkout through a trusted backend
+- Verify payment callbacks
+- Verify webhook signatures
+- Handle duplicate callbacks
+- Handle failed payments
+- Handle cancellations
+- Update subscription state securely
+- Preserve transaction audit records
+
+Evaluate a supported provider such as SSLCommerz or another suitable provider based on actual merchant eligibility and billing capabilities.
+
+Do not assume recurring billing is supported without checking the provider's current requirements.
+
+Never collect payment PINs, OTPs, or card details directly.
+
+If credentials are missing, clearly identify the remaining configuration and do not fake successful payment.
+
+---
+
+## 26. ADMIN PANEL
+
+Create a protected administrator dashboard.
+
+Features:
+- User statistics
+- Active user metrics
+- Subscription overview
+- Plan configuration
+- Feature entitlement configuration
+- Support requests
+- Application health indicators
+- Administrative audit logs
+
+Use Firebase custom claims or another server-controlled role system.
+
+Do not permit a user to become an administrator by editing their profile.
+
+Verify admin permissions on the server.
+
+Protect sensitive administrative operations.
+
+Do not expose private student notes through aggregate reporting.
+
+---
+
+## 27. ERROR HANDLING AND USER FEEDBACK
+
+Create Bengali messages for:
+- Loading
+- Empty states
+- Successful operations
+- Validation errors
+- Permission denied
+- Network errors
+- Session expired
+- Timer completed
+- Subscription unavailable
+
+Implement:
+- Loading UI
+- Skeleton cards
+- Error boundaries
+- Retry buttons
+- Confirmation dialogs
+- Toast notifications
+- Not-found page
+- Responsive fallback layouts
+
+Do not show raw Firebase stack traces to users.
+
+Log useful development information without exposing sensitive information.
+
+---
+
+## 28. TESTING
+
+Write tests for:
+
+### Timer
+- Start
+- Pause
+- Resume
+- Cancel
+- Completion
+- Refresh recovery
+- Duplicate completion prevention
+- Break time exclusion
+
+### Tasks
+- Create
+- Read
+- Update
+- Delete
+- Complete
+- Reopen
+- Validation
+
+### Study plans
+- Create
+- Edit
+- Complete topic
+- Calculate progress
+- Delete with appropriate confirmation
+
+### Analytics
+- Daily totals
+- Weekly totals
+- Monthly totals
+- Subject totals
+- Streak calculation
+- Duplicate session prevention
+- Zero-goal handling
+- Timezone boundaries
+
+### Authentication
+- Registration
+- Login
+- Logout
+- Protected routes
+- Session expiration
+
+### Security
+- Cross-user access denial
+- Unauthorized admin access denial
+- Subscription escalation denial
+
+### End-to-end
+Test a complete student journey:
+1. Register.
+2. Complete onboarding.
+3. Create a subject.
+4. Create a study plan.
+5. Add a task.
+6. Start a focus timer.
+7. Complete a session.
+8. View progress.
+9. Switch theme.
+10. Refresh the application.
+11. Verify saved data.
+12. Attempt unauthorized access.
+
+Do not claim tests passed unless they have actually been executed.
+
+---
+
+## 29. DEPLOYMENT AND DOCUMENTATION
+
+Create a complete README.md covering:
+- Prerequisites
+- Installation
+- Development server
+- Environment variables
+- Firebase project setup
+- Authentication configuration
+- Firestore setup
+- Security Rules
+- Index deployment
+- Admin SDK configuration
+- Local Firebase Emulator setup
+- Testing
+- Production build
+- Deployment
+- Payment configuration
+- Troubleshooting
+
+Include commands compatible with the chosen package manager.
+
+Make the application runnable locally.
+
+Do not require production credentials for basic UI development, but provide a clear development mode and a documented Firebase connection state.
+
+Do not silently use fake data in production.
+
+---
+
+## 30. IMPLEMENTATION PHASES
+
+Phase 1:
+Inspect the existing repository and confirm the Next.js version, App Router, dependencies, and styling setup.
+
+Phase 2:
+Build the Bengali design system, sidebar, header, dashboard, theme toggle, and responsive layouts.
+
+Phase 3:
+Configure Firebase Authentication, user profiles, session management, and route protection.
+
+Phase 4:
+Implement subject management, study plans, and task CRUD.
+
+Phase 5:
+Implement the focus timer and accurate session persistence.
+
+Phase 6:
+Implement progress calculations, charts, streaks, and achievements.
+
+Phase 7:
+Implement notes, calendar, notifications, and settings.
+
+Phase 8:
+Implement pricing, subscription architecture, and admin permissions.
+
+Phase 9:
+Implement Security Rules, indexes, Cloud Functions, and security tests.
+
+Phase 10:
+Run tests, fix errors, verify production builds, and document deployment.
+
+At the end of each phase:
+- Summarize what works.
+- List files changed.
+- Run relevant tests.
+- Fix discovered issues.
+- Continue to the next phase.
+
+Do not stop after building the dashboard.
+
+Do not replace existing code without inspecting it first.
+
+If credentials are missing, continue implementing independent features and document the required setup.
+
+---
+
+## 31. FINAL ACCEPTANCE CRITERIA
+
+The project is complete only when:
+- The Next.js App Router application runs.
+- All primary pages are functional.
+- All visible buttons perform meaningful actions.
+- Authentication works.
+- Firestore data persists.
+- Users cannot access other users' private data.
+- The focus timer works correctly.
+- Timer state survives refresh.
+- Tasks and study plans support CRUD.
+- Subjects can be managed.
+- Analytics use real data.
+- Streak calculations are tested.
+- Notes can be created and edited.
+- Achievements unlock correctly.
+- Calendar navigation works.
+- Notifications can be managed.
+- Light, dark, and system themes work.
+- Bengali text displays correctly.
+- Desktop, tablet, and mobile layouts work.
+- Subscription access is server-controlled.
+- Admin access is securely authorized.
+- No production payment flow is falsely simulated.
+- Firestore Security Rules and tests are provided.
+- The project builds successfully.
+- Setup and deployment documentation is complete.
+
+Start by inspecting the existing project, then implement the application systematically.
+
+Prioritize security, correct business logic, maintainability, accessibility, and visual quality.
+
+Do not claim a feature is complete until its implementation has been verified.

@@ -1,0 +1,188 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile data stored at users/{userId}",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 200 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "studyLevel": { "type": "string", "enum": ["school", "college", "university", "admission", "job_seeker", "programming", "self_learner"] },
+        "primaryGoal": { "type": "string", "maxLength": 300 },
+        "timezone": { "type": "string", "maxLength": 64 },
+        "themePreference": { "type": "string", "enum": ["light", "dark", "system"] },
+        "dailyGoalMinutes": { "type": "number" },
+        "weeklyGoalMinutes": { "type": "number" },
+        "onboardingCompleted": { "type": "boolean" },
+        "role": { "type": "string", "enum": ["student", "admin"] },
+        "subscriptionTier": { "type": "string", "enum": ["free", "pro", "premium"] },
+        "subscriptionStatus": { "type": "string", "enum": ["free", "active", "trialing", "past_due", "canceled", "expired"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "email", "studyLevel", "role", "subscriptionTier"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "Study subject entity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "color": { "type": "string", "maxLength": 32 },
+        "icon": { "type": "string", "maxLength": 64 },
+        "targetMinutes": { "type": "number" },
+        "description": { "type": "string", "maxLength": 500 },
+        "isArchived": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "name", "color", "targetMinutes"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Study task entity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "studyPlanId": { "type": "string", "maxLength": 128 },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "urgent"] },
+        "status": { "type": "string", "enum": ["pending", "in_progress", "completed", "cancelled"] },
+        "deadline": { "type": "string", "maxLength": 64 },
+        "estimatedMinutes": { "type": "number" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "priority", "status"]
+    },
+    "StudyPlan": {
+      "title": "StudyPlan",
+      "description": "Study roadmap and syllabus plan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "startDate": { "type": "string", "maxLength": 64 },
+        "targetDate": { "type": "string", "maxLength": 64 },
+        "targetMinutes": { "type": "number" },
+        "completedMinutes": { "type": "number" },
+        "status": { "type": "string", "enum": ["planned", "in_progress", "completed", "paused"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "status"]
+    },
+    "FocusSession": {
+      "title": "FocusSession",
+      "description": "Individual recorded focus session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "mode": { "type": "string", "enum": ["focus", "short_break", "long_break", "custom"] },
+        "plannedDurationMinutes": { "type": "number" },
+        "actualDurationSeconds": { "type": "number" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "taskId": { "type": "string", "maxLength": 128 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "isCompleted": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "mode", "actualDurationSeconds", "startTime", "endTime", "isCompleted"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "Student revision note",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string", "maxLength": 20000 },
+        "subjectId": { "type": "string", "maxLength": 128 },
+        "isFavorite": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "content"]
+    },
+    "Achievement": {
+      "title": "Achievement",
+      "description": "Awarded badge/achievement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 300 },
+        "icon": { "type": "string", "maxLength": 64 },
+        "category": { "type": "string", "enum": ["sessions", "streak", "hours", "tasks", "plans"] },
+        "requiredCount": { "type": "number" },
+        "isUnlocked": { "type": "boolean" },
+        "progress": { "type": "number" }
+      },
+      "required": ["id", "title", "requiredCount", "isUnlocked"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notification message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["reminder", "session_completed", "deadline", "goal_achieved", "achievement_unlocked", "subscription_update"] },
+        "title": { "type": "string", "maxLength": 200 },
+        "message": { "type": "string", "maxLength": 500 },
+        "isRead": { "type": "boolean" },
+        "link": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "type", "title", "message", "isRead"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores user profile and preferences"
+    },
+    "/users/{userId}/subjects/{subjectId}": {
+      "schema": { "$ref": "#/entities/Subject" },
+      "description": "Subjects managed by the user"
+    },
+    "/users/{userId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Tasks created and tracked by user"
+    },
+    "/users/{userId}/studyPlans/{planId}": {
+      "schema": { "$ref": "#/entities/StudyPlan" },
+      "description": "User study plans and roadmaps"
+    },
+    "/users/{userId}/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/FocusSession" },
+      "description": "Recorded focus and study sessions"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": { "$ref": "#/entities/Note" },
+      "description": "Study revision notes"
+    },
+    "/users/{userId}/achievements/{achievementId}": {
+      "schema": { "$ref": "#/entities/Achievement" },
+      "description": "Unlocked and in-progress user achievements"
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "User in-app notifications"
+    }
+  }
+}

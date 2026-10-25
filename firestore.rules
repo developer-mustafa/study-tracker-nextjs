@@ -1,0 +1,157 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'mustafarahman792@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // User profile validation
+    function isValidUserProfile(data, userId) {
+      return data.uid == userId &&
+        data.displayName is string && data.displayName.size() <= 100 &&
+        data.email is string && data.email.size() <= 200 &&
+        data.role in ['student', 'admin'] &&
+        data.subscriptionTier in ['free', 'pro', 'premium'];
+    }
+
+    // User Profile Document
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().role == 'student' &&
+        incoming().subscriptionTier == 'free';
+      allow update: if isOwner(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().uid == existing().uid &&
+        // Block privilege escalation: normal users cannot change their role or subscriptionTier
+        (isAdmin() || (
+          incoming().role == existing().role &&
+          incoming().subscriptionTier == existing().subscriptionTier
+        ));
+      allow delete: if isAdmin();
+
+      // Subjects Subcollection
+      match /subjects/{subjectId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(subjectId) &&
+          incoming().userId == userId &&
+          incoming().name is string && incoming().name.size() <= 100 &&
+          incoming().color is string && incoming().color.size() <= 32;
+        allow update: if isOwner(userId) &&
+          incoming().userId == existing().userId &&
+          incoming().name is string && incoming().name.size() <= 100;
+        allow delete: if isOwner(userId);
+      }
+
+      // Tasks Subcollection
+      match /tasks/{taskId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(taskId) &&
+          incoming().userId == userId &&
+          incoming().title is string && incoming().title.size() <= 200 &&
+          incoming().priority in ['low', 'medium', 'high', 'urgent'] &&
+          incoming().status in ['pending', 'in_progress', 'completed', 'cancelled'];
+        allow update: if isOwner(userId) &&
+          incoming().userId == existing().userId &&
+          incoming().title is string && incoming().title.size() <= 200;
+        allow delete: if isOwner(userId);
+      }
+
+      // Study Plans Subcollection
+      match /studyPlans/{planId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(planId) &&
+          incoming().userId == userId &&
+          incoming().title is string && incoming().title.size() <= 200 &&
+          incoming().status in ['planned', 'in_progress', 'completed', 'paused'];
+        allow update: if isOwner(userId) &&
+          incoming().userId == existing().userId &&
+          incoming().title is string && incoming().title.size() <= 200;
+        allow delete: if isOwner(userId);
+      }
+
+      // Focus Sessions Subcollection
+      match /sessions/{sessionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(sessionId) &&
+          incoming().userId == userId &&
+          incoming().mode in ['focus', 'short_break', 'long_break', 'custom'] &&
+          incoming().actualDurationSeconds is number &&
+          incoming().actualDurationSeconds >= 0 &&
+          incoming().actualDurationSeconds <= 86400;
+        allow update: if false; // Sessions are immutable audit history
+        allow delete: if isOwner(userId);
+      }
+
+      // Notes Subcollection
+      match /notes/{noteId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(noteId) &&
+          incoming().userId == userId &&
+          incoming().title is string && incoming().title.size() <= 200 &&
+          incoming().content is string && incoming().content.size() <= 20000;
+        allow update: if isOwner(userId) &&
+          incoming().userId == existing().userId &&
+          incoming().title is string && incoming().title.size() <= 200;
+        allow delete: if isOwner(userId);
+      }
+
+      // Achievements Subcollection
+      match /achievements/{achievementId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidId(achievementId) &&
+          incoming().title is string && incoming().title.size() <= 100;
+        allow delete: if false;
+      }
+
+      // Notifications Subcollection
+      match /notifications/{notificationId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(notificationId) &&
+          incoming().userId == userId &&
+          incoming().title is string && incoming().title.size() <= 200;
+        allow update: if isOwner(userId) &&
+          incoming().userId == existing().userId &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only manageable via trusted backend or console
+    }
+  }
+}
