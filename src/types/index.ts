@@ -272,3 +272,64 @@ export interface UserPreferences {
   notificationsEnabled: boolean;
   timezone: string;
 }
+
+export type CertificateType =
+  | 'study_streak' // স্টাডি স্ট্রিক ও নিয়মানুবর্তিতা
+  | 'subject_mastery' // বিষয়ভিত্তিক দক্ষতা ও মাস্টারি
+  | 'focus_hours' // ১০০+ ঘণ্টা ফোকাস স্টাডি
+  | 'course_completion' // একাডেমি কোর্স বা ব্যাচ সমাপ্তি
+  | 'excellence'; // সামগ্রিক শ্রেষ্ঠত্ব সনদ
+
+export interface Certificate {
+  id: string;
+  certificateNumber: string; // e.g. "FS-CERT-2026-BD-8921"
+  userId: string;
+  recipientName: string;
+  recipientNameEn: string;
+  tenantId?: string;
+  tenantName: string;
+  type: CertificateType;
+  title: string;
+  titleEn: string;
+  subtitle: string;
+  description: string;
+  milestoneDetail: string;
+  issueDate: string; // ISO date
+  expiryDate?: string;
+  signatoryName: string;
+  signatoryTitle: string;
+  adminSignatoryName: string;
+  adminSignatoryTitle: string;
+  verificationCode: string;
+  isUnlocked: boolean;
+  scoreOrHours?: string;
+  grade?: string; // যেমন: "A+" বা "Distinction"
+}
+
+export type ReportType =
+  | 'progress_summary' // দৈনিক ও সাপ্তাহিক স্টাডি প্রগ্রেস রিপোর্ট
+  | 'subject_mastery' // বিষয়ভিত্তিক দক্ষতা ও ফলাফল রিপোর্ট
+  | 'attendance_batch' // ব্যাচ ও একাডেমি উপস্থিতি রিপোর্ট
+  | 'invoice_receipt'; // আর্থিক সাবস্ক্রিপশন ইনভয়েস ও মানি রিসিট
+
+export interface ReportFilter {
+  dateRange: 'today' | 'last_7_days' | 'last_30_days' | 'all';
+  tenantId?: string;
+  subjectId?: string;
+}
+
+export type SignatureRole = 'student' | 'mentor' | 'admin';
+
+export interface AppSignature {
+  id: string;
+  role: SignatureRole;
+  signatoryName: string;
+  signatoryTitle: string;
+  organization?: string;
+  type: 'drawn' | 'calligraphy' | 'uploaded';
+  dataUrl?: string; // Base64 png data URL from canvas or upload
+  calligraphyStyle?: 'cursive' | 'brush' | 'formal' | 'stylish';
+  sealType?: 'official_round' | 'approved_stamp' | 'gold_seal' | 'none';
+  updatedAt: string;
+}
+

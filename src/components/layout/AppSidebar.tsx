@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
+  Printer,
+  GraduationCap,
 } from 'lucide-react';
 import { toBengaliNumber } from '../../lib/utils/formatters';
 import { useFocusStudyData } from '../../lib/storage/store';
@@ -27,6 +29,8 @@ export type NavTab =
   | 'plans'
   | 'subjects'
   | 'progress'
+  | 'reports'
+  | 'certificates'
   | 'notes'
   | 'calendar'
   | 'achievements'
@@ -47,10 +51,11 @@ export function AppSidebar({
   isCollapsed,
   onToggleCollapse,
 }: AppSidebarProps) {
-  const { user, tasks, achievements, activeTenant, paymentTransactions } = useFocusStudyData();
+  const { user, tasks, achievements, activeTenant, paymentTransactions, certificates } = useFocusStudyData();
   const { isPlatformAdmin } = useAuth();
   const pendingTasksCount = tasks.filter((t) => t.status !== 'completed').length;
   const unlockedAchievementsCount = achievements.filter((a) => a.isUnlocked).length;
+  const unlockedCertsCount = certificates.filter((c) => c.isUnlocked).length;
   const pendingTxCount = paymentTransactions.filter((t) => t.status === 'pending').length;
 
   const navItems = [
@@ -65,7 +70,15 @@ export function AppSidebar({
     },
     { id: 'plans' as NavTab, label: 'স্টাডি প্ল্যান', icon: BookMarked },
     { id: 'subjects' as NavTab, label: 'বিষয়সমূহ', icon: Layers },
-    { id: 'progress' as NavTab, label: 'অগ্রগতি ও রিপোর্ট', icon: TrendingUp },
+    { id: 'progress' as NavTab, label: 'অগ্রগতি ও কার্ড', icon: TrendingUp },
+    { id: 'reports' as NavTab, label: 'এ৪ রিপোর্ট ও প্রিন্ট', icon: Printer, tag: 'A4' },
+    {
+      id: 'certificates' as NavTab,
+      label: 'সনদ ও প্রশংসাপত্র',
+      icon: GraduationCap,
+      badge: toBengaliNumber(unlockedCertsCount),
+      badgeColor: 'bg-amber-100 text-amber-900 dark:bg-amber-900/50 dark:text-amber-300',
+    },
     { id: 'notes' as NavTab, label: 'নোটস ও রিভিশন', icon: FileText },
     { id: 'calendar' as NavTab, label: 'ক্যালেন্ডার', icon: Calendar },
     {

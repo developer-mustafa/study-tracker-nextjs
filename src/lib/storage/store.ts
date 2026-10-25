@@ -16,6 +16,8 @@ import {
   PaymentGatewayType,
   SubscriptionPlan,
   PaymentTransaction,
+  Certificate,
+  AppSignature,
 } from '../../types';
 import {
   INITIAL_USER,
@@ -32,6 +34,8 @@ import {
   INITIAL_NOTES,
   INITIAL_ACHIEVEMENTS,
   INITIAL_NOTIFICATIONS,
+  INITIAL_CERTIFICATES,
+  INITIAL_SIGNATURES,
 } from './seedData';
 import { calculateStreak } from '../utils/streak';
 import { getDateKey, DEFAULT_TIMEZONE } from '../utils/date-utils';
@@ -53,6 +57,8 @@ const STORAGE_KEYS = {
   ACHIEVEMENTS: 'focusstudy_achievements',
   NOTIFICATIONS: 'focusstudy_notifications',
   ACTIVE_TIMER: 'focusstudy_active_timer',
+  CERTIFICATES: 'focusstudy_certificates',
+  SIGNATURES: 'focusstudy_signatures',
 };
 
 const memoryStore = new Map<string, string>();
@@ -786,6 +792,92 @@ export const FocusStudyStore = {
     };
     this.setNotifications([newNotif, ...notifs]);
   },
+
+  // Certificates
+  getCertificates(): Certificate[] {
+    return loadItem(STORAGE_KEYS.CERTIFICATES, INITIAL_CERTIFICATES);
+  },
+
+  setCertificates(certs: Certificate[]): void {
+    saveItem(STORAGE_KEYS.CERTIFICATES, certs);
+  },
+
+  issueCertificate(
+    certData: Omit<
+      Certificate,
+      | 'id'
+      | 'certificateNumber'
+      | 'issueDate'
+      | 'verificationCode'
+      | 'isUnlocked'
+      | 'signatoryName'
+      | 'signatoryTitle'
+      | 'adminSignatoryName'
+      | 'adminSignatoryTitle'
+    > & Partial<Certificate>
+  ): Certificate {
+    const certs = this.getCertificates();
+    const randNum = Math.floor(1000 + Math.random() * 9000);
+    const newCert: Certificate = {
+      ...certData,
+      id: certData.id || `cert_${Date.now()}_${randNum}`,
+      certificateNumber: certData.certificateNumber || `FS-CERT-2026-BD-${randNum}`,
+      issueDate: certData.issueDate || new Date().toISOString(),
+      verificationCode: certData.verificationCode || `VRF-2026-${randNum}-VER`,
+      isUnlocked: certData.isUnlocked ?? true,
+      signatoryName: certData.signatoryName || 'প্রফেসর ড. মাহফুজুল ইসলাম',
+      signatoryTitle: certData.signatoryTitle || 'একাডেমিক ডিরেক্টর',
+      adminSignatoryName: certData.adminSignatoryName || 'মুস্তাফা রহমান',
+      adminSignatoryTitle: certData.adminSignatoryTitle || 'চিফ প্ল্যাটফর্ম অ্যাডমিনিস্ট্রেটর, FocusStudy',
+    };
+    this.setCertificates([newCert, ...certs]);
+
+    // Send notification
+    const user = this.getUser();
+    const notifs = this.getNotifications();
+    const certNotif: AppNotification = {
+      id: `notif_cert_${Date.now()}`,
+      userId: user.uid,
+      type: 'achievement_unlocked',
+      title: '🎉 নতুন প্রশংসাপত্র / সনদপত্র অর্জিত হয়েছে!',
+      message: `"${newCert.title}" সনদপত্র সফলভাবে ইস্যু হয়েছে। এখনই ডাউনলোড বা প্রিন্ট করুন।`,
+      isRead: false,
+      link: 'certificates',
+      createdAt: new Date().toISOString(),
+    };
+    this.setNotifications([certNotif, ...notifs]);
+
+    return newCert;
+  },
+
+  deleteCertificate(certId: string): void {
+    const certs = this.getCertificates().filter((c) => c.id !== certId);
+    this.setCertificates(certs);
+  },
+
+  // Signatures
+  getSignatures(): AppSignature[] {
+    return loadItem(STORAGE_KEYS.SIGNATURES, INITIAL_SIGNATURES);
+  },
+
+  setSignatures(sigs: AppSignature[]): void {
+    saveItem(STORAGE_KEYS.SIGNATURES, sigs);
+  },
+
+  saveSignature(signature: AppSignature): void {
+    const sigs = this.getSignatures();
+    const idx = sigs.findIndex((s) => s.id === signature.id || s.role === signature.role);
+    if (idx >= 0) {
+      sigs[idx] = { ...signature, updatedAt: new Date().toISOString() };
+    } else {
+      sigs.push({ ...signature, updatedAt: new Date().toISOString() });
+    }
+    this.setSignatures(sigs);
+  },
+
+  getSignatureByRole(role: string): AppSignature | undefined {
+    return this.getSignatures().find((s) => s.role === role);
+  },
 };
 
 /**
@@ -824,6 +916,8 @@ export function useFocusStudyData() {
     sessions: FocusStudyStore.getSessions(),
     notes: FocusStudyStore.getNotes(),
     achievements: FocusStudyStore.getAchievements(),
+    certificates: FocusStudyStore.getCertificates(),
+    signatures: FocusStudyStore.getSignatures(),
     notifications: FocusStudyStore.getNotifications(),
     activeTimer: FocusStudyStore.getActiveTimer(),
   };

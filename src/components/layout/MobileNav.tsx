@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   X,
   Flame,
+  Printer,
+  GraduationCap,
 } from 'lucide-react';
 import { NavTab } from './AppSidebar';
 import { toBengaliNumber } from '../../lib/utils/formatters';
@@ -26,9 +28,10 @@ interface MobileNavProps {
 }
 
 export function MobileNav({ activeTab, onSelectTab, isOpen, onClose }: MobileNavProps) {
-  const { tasks, achievements } = useFocusStudyData();
+  const { tasks, achievements, certificates } = useFocusStudyData();
   const pendingTasksCount = tasks.filter((t) => t.status !== 'completed').length;
   const unlockedAchievementsCount = achievements.filter((a) => a.isUnlocked).length;
+  const unlockedCertsCount = certificates.filter((c) => c.isUnlocked).length;
 
   const allNavItems = [
     { id: 'dashboard' as NavTab, label: 'ড্যাশবোর্ড', icon: LayoutDashboard },
@@ -41,7 +44,14 @@ export function MobileNav({ activeTab, onSelectTab, isOpen, onClose }: MobileNav
     },
     { id: 'plans' as NavTab, label: 'স্টাডি প্ল্যান', icon: BookMarked },
     { id: 'subjects' as NavTab, label: 'বিষয়সমূহ', icon: Layers },
-    { id: 'progress' as NavTab, label: 'অগ্রগতি ও রিপোর্ট', icon: TrendingUp },
+    { id: 'progress' as NavTab, label: 'অগ্রগতি ও কার্ড', icon: TrendingUp },
+    { id: 'reports' as NavTab, label: 'এ৪ রিপোর্ট ও প্রিন্ট', icon: Printer },
+    {
+      id: 'certificates' as NavTab,
+      label: 'সনদ ও প্রশংসাপত্র',
+      icon: GraduationCap,
+      badge: toBengaliNumber(unlockedCertsCount),
+    },
     { id: 'notes' as NavTab, label: 'নোটস ও রিভিশন', icon: FileText },
     { id: 'calendar' as NavTab, label: 'ক্যালেন্ডার', icon: Calendar },
     {

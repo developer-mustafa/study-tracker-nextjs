@@ -81,3 +81,8 @@ export function getBengaliGreeting(): string {
   if (hour >= 16 && hour < 19) return 'শুভ বিকেল';
   return 'শুভ রাত্রি';
 }
+
+export function formatCurrencyBDT(amount: number): string {
+  return `৳${toBengaliNumber(amount.toLocaleString('en-US'))}`;
+}
+

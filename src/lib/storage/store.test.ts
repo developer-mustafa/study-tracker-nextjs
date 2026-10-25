@@ -95,3 +95,53 @@ test('rejectPaymentTransaction updates status and rejection reason', () => {
   assert.equal(rejected?.status, 'rejected');
   assert.equal(rejected?.rejectionReason, 'অবৈধ ট্রানজেকশন আইডি');
 });
+
+test('issueCertificate adds certificate with verification code and audit data', () => {
+  const initialCount = FocusStudyStore.getCertificates().length;
+  const newCert = FocusStudyStore.issueCertificate({
+    userId: 'student_demo_101',
+    recipientName: 'মুস্তাফা রহমান',
+    recipientNameEn: 'Mustafa Rahman',
+    tenantName: 'ঢাকা ড্রিমার্স একাডেমি',
+    type: 'excellence',
+    title: 'স্পেশাল বিসিএস অ্যাচিভার সনদ',
+    titleEn: 'Special BCS Achiever Certificate',
+    subtitle: 'ধারাবাহিক উৎকর্ষ ও মক টেস্টে শীর্ষস্থান অধিকার করায়',
+    description: 'মুস্তাফা রহমান সফলতার সাথে সম্পূর্ণ কোর্স সম্পন্ন করেছেন।',
+    milestoneDetail: '৫০+ মক টেস্ট সম্পন্ন | ৯৮% সঠিক উত্তর',
+    scoreOrHours: '৯৮% স্কোর',
+    grade: 'A+ (Distinction)',
+  });
+
+  assert.ok(newCert.id);
+  assert.ok(newCert.certificateNumber.startsWith('FS-CERT-2026-BD-'));
+  assert.ok(newCert.verificationCode.startsWith('VRF-2026-'));
+  assert.equal(newCert.isUnlocked, true);
+  assert.equal(newCert.title, 'স্পেশাল বিসিএস অ্যাচিভার সনদ');
+
+  const allCerts = FocusStudyStore.getCertificates();
+  assert.equal(allCerts.length, initialCount + 1);
+  assert.equal(allCerts[0].id, newCert.id);
+});
+
+test('saveSignature updates signature and getSignatureByRole retrieves it correctly', () => {
+  FocusStudyStore.saveSignature({
+    id: 'sig-mentor',
+    role: 'mentor',
+    signatoryName: 'প্রফেসর ড. মাহফুজুল ইসলাম (আপডেটেড)',
+    signatoryTitle: 'চীফ একাডেমি ডিরেক্টর',
+    organization: 'ঢাকা ড্রিমার্স একাডেমি',
+    type: 'calligraphy',
+    calligraphyStyle: 'brush',
+    sealType: 'official_round',
+    updatedAt: new Date().toISOString(),
+  });
+
+  const sig = FocusStudyStore.getSignatureByRole('mentor');
+  assert.ok(sig);
+  assert.equal(sig?.signatoryName, 'প্রফেসর ড. মাহফুজুল ইসলাম (আপডেটেড)');
+  assert.equal(sig?.signatoryTitle, 'চীফ একাডেমি ডিরেক্টর');
+  assert.equal(sig?.sealType, 'official_round');
+});
+
+

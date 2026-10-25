@@ -14,6 +14,8 @@ import { TasksView } from './components/tasks/TasksView';
 import { StudyPlansView } from './components/study-plans/StudyPlansView';
 import { SubjectsView } from './components/subjects/SubjectsView';
 import { ProgressView } from './components/progress/ProgressView';
+import { ReportsView } from './components/reports/ReportsView';
+import { CertificateView } from './components/certificates/CertificateView';
 import { NotesView } from './components/notes/NotesView';
 import { CalendarView } from './components/calendar/CalendarView';
 import { AchievementsView } from './components/achievements/AchievementsView';
@@ -110,7 +112,9 @@ function FocusStudyApp() {
           {activeTab === 'tasks' && <TasksView />}
           {activeTab === 'plans' && <StudyPlansView />}
           {activeTab === 'subjects' && <SubjectsView />}
-          {activeTab === 'progress' && <ProgressView />}
+          {activeTab === 'progress' && <ProgressView onNavigateToCertificates={() => setActiveTab('certificates')} />}
+          {activeTab === 'reports' && <ReportsView />}
+          {activeTab === 'certificates' && <CertificateView />}
           {activeTab === 'notes' && <NotesView />}
           {activeTab === 'calendar' && <CalendarView />}
           {activeTab === 'achievements' && <AchievementsView />}

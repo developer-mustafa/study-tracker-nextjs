@@ -1,4 +1,5 @@
-import { TrendingUp, Clock, CheckCircle2, Zap, Trophy, Target } from 'lucide-react';
+import { useState } from 'react';
+import { TrendingUp, Clock, CheckCircle2, Zap, Trophy, Target, Printer, Award, FileSpreadsheet, PenTool } from 'lucide-react';
 import { useFocusStudyData } from '../../lib/storage/store';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -12,10 +13,19 @@ import {
 } from '../../lib/utils/formatters';
 import { getDateKey, DEFAULT_TIMEZONE } from '../../lib/utils/date-utils';
 import { StudyTimeChart } from '../dashboard/StudyTimeChart';
+import { StudentProgressCard } from './StudentProgressCard';
+import { ReportPrintModal } from '../reports/ReportPrintModal';
+import { SignatureManagerModal } from '../signatures/SignatureManagerModal';
 
-export function ProgressView() {
+interface ProgressViewProps {
+  onNavigateToCertificates?: () => void;
+}
+
+export function ProgressView({ onNavigateToCertificates }: ProgressViewProps) {
   const { user } = useAuth();
   const { sessions, tasks, subjects } = useFocusStudyData();
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isSigModalOpen, setIsSigModalOpen] = useState(false);
 
   const metrics = computeDashboardMetrics(
     sessions,
@@ -37,15 +47,52 @@ export function ProgressView() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl md:text-2xl font-bold text-[#17233F] dark:text-[#F1F5FF]">
-          পড়াশোনার অগ্রগতি ও অ্যানালিটিক্স
-        </h2>
-        <p className="text-xs md:text-sm text-[#77839B] dark:text-[#A7B5CC] mt-0.5">
-          আপনার পড়ার সময়, ধারাবাহিকতা এবং লক্ষ্য অর্জনের গভীর বিশ্লেষণ
-        </p>
+      {/* Header with Print & Action Buttons */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-[#17233F] dark:text-[#F1F5FF]">
+            পড়াশোনার সামগ্রিক অগ্রগতি ও অ্যানালিটিক্স
+          </h2>
+          <p className="text-xs md:text-sm text-[#77839B] dark:text-[#A7B5CC] mt-0.5">
+            আপনার পড়ার সময়, ধারাবাহিকতা এবং লক্ষ্য অর্জনের গভীর মূল্যায়ন
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsSigModalOpen(true)}
+            className="px-3 py-2 rounded-xl bg-white dark:bg-[#0D1B32] border border-[#E6EAF2] dark:border-[#243754] text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="ডিজিটাল স্বাক্ষর ও সিল কনফিগার করুন"
+          >
+            <PenTool className="w-3.5 h-3.5 text-amber-500" />
+            <span>স্বাক্ষর এডিট</span>
+          </button>
+
+          {onNavigateToCertificates && (
+            <button
+              onClick={onNavigateToCertificates}
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#0D1B32] border border-[#E6EAF2] dark:border-[#243754] text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Award className="w-4 h-4" />
+              <span>সনদসমূহ</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsReportModalOpen(true)}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            <span>এ৪ রিপোর্ট প্রিন্ট / PDF</span>
+          </button>
+        </div>
       </div>
+
+      {/* Shareable Student Progress Card */}
+      <StudentProgressCard
+        onOpenReportModal={() => setIsReportModalOpen(true)}
+        onOpenCertificateModal={onNavigateToCertificates}
+      />
 
       {/* Primary KPI Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
@@ -173,6 +220,20 @@ export function ProgressView() {
           </table>
         </div>
       </div>
+
+      {/* A4 Report Print Modal */}
+      <ReportPrintModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
+
+      {/* Signature Manager Modal */}
+      <SignatureManagerModal
+        isOpen={isSigModalOpen}
+        onClose={() => setIsSigModalOpen(false)}
+        initialRole="student"
+      />
     </div>
   );
 }
+

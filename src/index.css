@@ -55,3 +55,103 @@
 .animate-fade-in {
   animation: fadeIn 0.25s ease-out forwards;
 }
+
+/* ============================================================
+   A4 Print & PDF Export Stylesheet (Zero-Margin Defect)
+   ============================================================ */
+@page {
+  size: A4 portrait;
+  margin: 12mm 12mm 12mm 12mm;
+}
+
+@page landscape-page {
+  size: A4 landscape;
+  margin: 8mm 8mm 8mm 8mm;
+}
+
+.a4-landscape-page {
+  page: landscape-page;
+}
+
+/* Simulated A4 Sheets for Screen Preview */
+.a4-portrait-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 14mm 15mm;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.a4-landscape-sheet {
+  width: 297mm;
+  min-height: 210mm;
+  padding: 8mm 10mm;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+@media print {
+  /* Universal print isolation: Hide everything outside printable document */
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  /* Make only the designated printable document visible and zeroed */
+  .printable-a4-document,
+  .printable-a4-document * {
+    visibility: visible !important;
+  }
+
+  .printable-a4-document {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .a4-portrait-sheet,
+  .a4-landscape-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  /* Page Break Hygiene */
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  /* Explicitly hide non-printable tools */
+  .no-print,
+  .no-print * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
