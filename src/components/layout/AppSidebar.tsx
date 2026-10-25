@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toBengaliNumber } from '../../lib/utils/formatters';
 import { useFocusStudyData } from '../../lib/storage/store';
+import { useAuth } from '../../contexts/AuthContext';
 
 export type NavTab =
   | 'dashboard'
@@ -46,9 +47,11 @@ export function AppSidebar({
   isCollapsed,
   onToggleCollapse,
 }: AppSidebarProps) {
-  const { user, tasks, achievements } = useFocusStudyData();
+  const { user, tasks, achievements, activeTenant, paymentTransactions } = useFocusStudyData();
+  const { isPlatformAdmin } = useAuth();
   const pendingTasksCount = tasks.filter((t) => t.status !== 'completed').length;
   const unlockedAchievementsCount = achievements.filter((a) => a.isUnlocked).length;
+  const pendingTxCount = paymentTransactions.filter((t) => t.status === 'pending').length;
 
   const navItems = [
     { id: 'dashboard' as NavTab, label: 'ড্যাশবোর্ড', icon: LayoutDashboard },
@@ -78,7 +81,14 @@ export function AppSidebar({
       icon: Crown,
       tag: 'PRO',
     },
-    { id: 'admin' as NavTab, label: 'অ্যাডমিন ড্যাশবোর্ড', icon: ShieldCheck },
+    {
+      id: 'admin' as NavTab,
+      label: isPlatformAdmin ? '👑 সুপার অ্যাডমিন' : 'অ্যাডমিন ড্যাশবোর্ড',
+      icon: ShieldCheck,
+      badge: pendingTxCount > 0 ? toBengaliNumber(pendingTxCount) : null,
+      badgeColor: 'bg-amber-500 text-white',
+      highlight: isPlatformAdmin,
+    },
     { id: 'settings' as NavTab, label: 'সেটিংস', icon: Settings },
   ];
 

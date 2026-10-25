@@ -8,6 +8,8 @@ import {
   Flame,
   CheckCircle2,
   Trash2,
+  ShieldCheck,
+  Crown,
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -19,6 +21,7 @@ import {
 import { calculateStreak } from '../../lib/utils/streak';
 import { getDateKey, DEFAULT_TIMEZONE } from '../../lib/utils/date-utils';
 import { NavTab } from './AppSidebar';
+import { TenantSwitcher } from '../tenants/TenantSwitcher';
 
 interface AppHeaderProps {
   onOpenMobileMenu: () => void;
@@ -27,8 +30,8 @@ interface AppHeaderProps {
 
 export function AppHeader({ onOpenMobileMenu, onSelectTab }: AppHeaderProps) {
   const { resolvedTheme, toggleTheme } = useTheme();
-  const { user, openAuthModal, signOut } = useAuth();
-  const { notifications, sessions } = useFocusStudyData();
+  const { user, openAuthModal, signOut, isPlatformAdmin } = useAuth();
+  const { notifications, sessions, activeTenant } = useFocusStudyData();
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -54,23 +57,26 @@ export function AppHeader({ onOpenMobileMenu, onSelectTab }: AppHeaderProps) {
   }, []);
 
   return (
-    <header className="h-16 px-4 md:px-6 bg-white dark:bg-[#0D1B32] border-b border-[#E6EAF2] dark:border-[#243754] flex items-center justify-between z-20 shrink-0">
-      {/* Left section: mobile hamburger + date */}
-      <div className="flex items-center gap-3">
+    <header className="h-16 px-4 md:px-6 bg-white dark:bg-[#0D1B32] border-b border-[#E6EAF2] dark:border-[#243754] flex items-center justify-between z-20 shrink-0 gap-3">
+      {/* Left section: mobile hamburger + Tenant Switcher */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onOpenMobileMenu}
-          className="md:hidden p-2 rounded-xl text-[#77839B] dark:text-[#A7B5CC] hover:bg-[#F5F7FC] dark:hover:bg-[#122440]"
+          className="md:hidden p-2 rounded-xl text-[#77839B] dark:text-[#A7B5CC] hover:bg-[#F5F7FC] dark:hover:bg-[#122440] shrink-0"
           aria-label="মেনু খুলুন"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs md:text-sm font-semibold text-[#17233F] dark:text-[#F1F5FF]">
+        {/* Multi-tenant Switcher */}
+        <TenantSwitcher />
+
+        <div className="hidden lg:flex items-center gap-2">
+          <span className="text-xs font-semibold text-[#77839B] dark:text-[#A7B5CC]">
             {formatBengaliWeekdayDate(new Date())}
           </span>
           {streak.currentStreak > 0 && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 text-amber-600 dark:text-amber-400 text-xs font-bold">
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 text-amber-600 dark:text-amber-400 text-xs font-bold">
               <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
               <span>{toBengaliNumber(streak.currentStreak)} দিনের স্ট্রিক</span>
             </div>
@@ -79,11 +85,23 @@ export function AppHeader({ onOpenMobileMenu, onSelectTab }: AppHeaderProps) {
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-2 md:gap-3">
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        {/* Platform Admin Quick Button */}
+        {isPlatformAdmin && (
+          <button
+            onClick={() => onSelectTab('admin')}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-extrabold transition-all"
+            title="সুপার অ্যাডমিন ড্যাশবোর্ড"
+          >
+            <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <span>সুপার অ্যাডমিন</span>
+          </button>
+        )}
+
         {/* Quick Start Timer button */}
         <button
           onClick={() => onSelectTab('timer')}
-          className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-gradient-to-r from-[#5B5CE2] to-[#8B5CF6] text-white text-xs md:text-sm font-semibold shadow-sm hover:shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#5B5CE2] to-[#8B5CF6] text-white text-xs font-semibold shadow-xs hover:shadow-indigo-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           <Play className="w-3.5 h-3.5 fill-current" />
           <span className="hidden sm:inline">টাইমার শুরু</span>
@@ -201,16 +219,35 @@ export function AppHeader({ onOpenMobileMenu, onSelectTab }: AppHeaderProps) {
                 <p className="text-sm font-bold text-[#17233F] dark:text-[#F1F5FF] truncate">
                   {user.displayName}
                 </p>
-                <p className="text-xs text-[#77839B] dark:text-[#A7B5CC] truncate">
+                <p className="text-xs text-[#77839B] dark:text-[#A7B5CC] truncate font-mono">
                   {user.email}
                 </p>
-                <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-300">
-                  <CheckCircle2 className="w-3 h-3 text-[#5B5CE2]" />
-                  <span>{user.subscriptionTier.toUpperCase()} মেম্বারশিপ</span>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-300 uppercase">
+                    <CheckCircle2 className="w-3 h-3 text-[#5B5CE2]" />
+                    <span>{user.subscriptionTier}</span>
+                  </span>
+                  {isPlatformAdmin && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                      👑 সুপার অ্যাডমিন
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="py-2 space-y-1">
+                {isPlatformAdmin && (
+                  <button
+                    onClick={() => {
+                      onSelectTab('admin');
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-bold rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 flex items-center justify-between"
+                  >
+                    <span>সুপার অ্যাডমিন ড্যাশবোর্ড</span>
+                    <Crown className="w-3.5 h-3.5 text-amber-500" />
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     onSelectTab('settings');

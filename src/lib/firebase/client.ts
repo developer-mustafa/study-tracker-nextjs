@@ -7,7 +7,8 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import firebaseConfig from '../../../firebase-applet-config.json';
 
 export enum OperationType {
   CREATE = 'create',
@@ -60,24 +61,18 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Client-safe configuration
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
-};
-
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey && firebaseConfig.projectId
 );
 
+let initializedApp: ReturnType<typeof initializeApp> | null = null;
+
 export function getFirebaseAppSafe() {
   if (!isFirebaseConfigured) return null;
+  if (initializedApp) return initializedApp;
   try {
-    return getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    initializedApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    return initializedApp;
   } catch (err) {
     console.warn('Firebase init warning:', err);
     return null;
@@ -91,7 +86,23 @@ export function getFirebaseAuthSafe() {
 
 export function getFirestoreSafe() {
   const app = getFirebaseAppSafe();
-  return app ? getFirestore(app) : null;
+  if (!app) return null;
+  return firebaseConfig.firestoreDatabaseId
+    ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+    : getFirestore(app);
+}
+
+// Connection test on boot
+if (typeof window !== 'undefined' && isFirebaseConfigured) {
+  const db = getFirestoreSafe();
+  if (db) {
+    getDocFromServer(doc(db, 'test', 'connection'))
+      .catch((error) => {
+        if (error instanceof Error && error.message.includes('the client is offline')) {
+          console.error('Please check your Firebase configuration.');
+        }
+      });
+  }
 }
 
 export async function signInWithGoogle() {

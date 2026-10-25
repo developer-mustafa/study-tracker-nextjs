@@ -16,13 +16,122 @@
         "dailyGoalMinutes": { "type": "number" },
         "weeklyGoalMinutes": { "type": "number" },
         "onboardingCompleted": { "type": "boolean" },
-        "role": { "type": "string", "enum": ["student", "admin"] },
-        "subscriptionTier": { "type": "string", "enum": ["free", "pro", "premium"] },
+        "role": { "type": "string", "enum": ["student", "platform_admin", "admin"] },
+        "isBlocked": { "type": "boolean" },
+        "blockedReason": { "type": "string", "maxLength": 500 },
+        "blockedAt": { "type": "string", "format": "date-time" },
+        "activeTenantId": { "type": "string", "maxLength": 128 },
+        "subscriptionTier": { "type": "string", "enum": ["free", "pro", "premium", "academy"] },
         "subscriptionStatus": { "type": "string", "enum": ["free", "active", "trialing", "past_due", "canceled", "expired"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["uid", "displayName", "email", "studyLevel", "role", "subscriptionTier"]
+      "required": ["uid", "displayName", "email", "role", "subscriptionTier"]
+    },
+    "Tenant": {
+      "title": "Tenant",
+      "description": "Multi-tenant organization (academy, coaching, study group)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 150 },
+        "slug": { "type": "string", "maxLength": 100 },
+        "type": { "type": "string", "enum": ["academy", "coaching", "study_group", "institution", "personal"] },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "ownerEmail": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 500 },
+        "subscriptionPlanId": { "type": "string", "maxLength": 64 },
+        "subscriptionStatus": { "type": "string", "enum": ["active", "trialing", "expired", "suspended"] },
+        "billingCycle": { "type": "string", "enum": ["monthly", "yearly"] },
+        "planExpiresAt": { "type": "string", "format": "date-time" },
+        "maxMembers": { "type": "number" },
+        "memberCount": { "type": "number" },
+        "isSuspended": { "type": "boolean" },
+        "suspendedReason": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "slug", "ownerId", "subscriptionPlanId", "subscriptionStatus"]
+    },
+    "TenantMember": {
+      "title": "TenantMember",
+      "description": "Tenant membership association",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "tenantId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userEmail": { "type": "string", "maxLength": 200 },
+        "role": { "type": "string", "enum": ["owner", "admin", "mentor", "student"] },
+        "joinedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "tenantId", "userId", "role", "joinedAt"]
+    },
+    "PaymentGatewayConfig": {
+      "title": "PaymentGatewayConfig",
+      "description": "Configuration for bKash, Nagad, and Rocket gateways managed by Platform Admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "enum": ["bkash", "nagad", "rocket"] },
+        "name": { "type": "string", "maxLength": 50 },
+        "banglaName": { "type": "string", "maxLength": 50 },
+        "accountType": { "type": "string", "enum": ["merchant", "personal", "agent"] },
+        "accountNumber": { "type": "string", "maxLength": 30 },
+        "isActive": { "type": "boolean" },
+        "instructions": { "type": "string", "maxLength": 1000 },
+        "feePercentage": { "type": "number" },
+        "color": { "type": "string", "maxLength": 32 },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "updatedBy": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "name", "accountType", "accountNumber", "isActive"]
+    },
+    "SubscriptionPlan": {
+      "title": "SubscriptionPlan",
+      "description": "SaaS subscription plan maintained dynamically by Platform Admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "name": { "type": "string", "maxLength": 100 },
+        "tagline": { "type": "string", "maxLength": 250 },
+        "priceMonthly": { "type": "number" },
+        "priceYearly": { "type": "number" },
+        "maxStudents": { "type": "number" },
+        "maxStudyPlans": { "type": "number" },
+        "popular": { "type": "boolean" },
+        "isActive": { "type": "boolean" },
+        "btnLabel": { "type": "string", "maxLength": 100 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "priceMonthly", "priceYearly", "isActive"]
+    },
+    "PaymentTransaction": {
+      "title": "PaymentTransaction",
+      "description": "Payment transaction record submitted by tenant/user via bKash/Nagad/Rocket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "tenantId": { "type": "string", "maxLength": 128 },
+        "tenantName": { "type": "string", "maxLength": 150 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userEmail": { "type": "string", "maxLength": 200 },
+        "gateway": { "type": "string", "enum": ["bkash", "nagad", "rocket"] },
+        "senderNumber": { "type": "string", "maxLength": 30 },
+        "trxId": { "type": "string", "maxLength": 64 },
+        "planId": { "type": "string", "maxLength": 64 },
+        "planName": { "type": "string", "maxLength": 100 },
+        "billingCycle": { "type": "string", "enum": ["monthly", "yearly"] },
+        "amount": { "type": "number" },
+        "currency": { "type": "string", "enum": ["BDT"] },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "rejectionReason": { "type": "string", "maxLength": 500 },
+        "approvedBy": { "type": "string", "maxLength": 200 },
+        "approvedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "gateway", "senderNumber", "trxId", "planId", "amount", "status"]
     },
     "Subject": {
       "title": "Subject",
@@ -31,6 +140,7 @@
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "userId": { "type": "string", "maxLength": 128 },
+        "tenantId": { "type": "string", "maxLength": 128 },
         "name": { "type": "string", "maxLength": 100 },
         "color": { "type": "string", "maxLength": 32 },
         "icon": { "type": "string", "maxLength": 64 },
@@ -49,6 +159,7 @@
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "userId": { "type": "string", "maxLength": 128 },
+        "tenantId": { "type": "string", "maxLength": 128 },
         "title": { "type": "string", "maxLength": 200 },
         "description": { "type": "string", "maxLength": 1000 },
         "subjectId": { "type": "string", "maxLength": 128 },
@@ -70,6 +181,7 @@
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "userId": { "type": "string", "maxLength": 128 },
+        "tenantId": { "type": "string", "maxLength": 128 },
         "title": { "type": "string", "maxLength": 200 },
         "description": { "type": "string", "maxLength": 1000 },
         "startDate": { "type": "string", "maxLength": 64 },
@@ -89,6 +201,7 @@
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "userId": { "type": "string", "maxLength": 128 },
+        "tenantId": { "type": "string", "maxLength": 128 },
         "mode": { "type": "string", "enum": ["focus", "short_break", "long_break", "custom"] },
         "plannedDurationMinutes": { "type": "number" },
         "actualDurationSeconds": { "type": "number" },
@@ -141,7 +254,7 @@
       "properties": {
         "id": { "type": "string", "maxLength": 128 },
         "userId": { "type": "string", "maxLength": 128 },
-        "type": { "type": "string", "enum": ["reminder", "session_completed", "deadline", "goal_achieved", "achievement_unlocked", "subscription_update"] },
+        "type": { "type": "string", "enum": ["reminder", "session_completed", "deadline", "goal_achieved", "achievement_unlocked", "subscription_update", "payment_status"] },
         "title": { "type": "string", "maxLength": 200 },
         "message": { "type": "string", "maxLength": 500 },
         "isRead": { "type": "boolean" },
@@ -154,7 +267,27 @@
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
-      "description": "Stores user profile and preferences"
+      "description": "Stores user profile, block status, and preferences"
+    },
+    "/tenants/{tenantId}": {
+      "schema": { "$ref": "#/entities/Tenant" },
+      "description": "Multi-tenant organizations and academies"
+    },
+    "/tenants/{tenantId}/members/{memberId}": {
+      "schema": { "$ref": "#/entities/TenantMember" },
+      "description": "Members assigned to a tenant organization"
+    },
+    "/payment_gateways/{gatewayId}": {
+      "schema": { "$ref": "#/entities/PaymentGatewayConfig" },
+      "description": "bKash, Nagad, and Rocket gateway configs managed by Platform Admin"
+    },
+    "/subscription_plans/{planId}": {
+      "schema": { "$ref": "#/entities/SubscriptionPlan" },
+      "description": "SaaS subscription plans maintained by Platform Admin"
+    },
+    "/payment_transactions/{txId}": {
+      "schema": { "$ref": "#/entities/PaymentTransaction" },
+      "description": "Payment requests and TrxID submissions for bKash/Nagad/Rocket"
     },
     "/users/{userId}/subjects/{subjectId}": {
       "schema": { "$ref": "#/entities/Subject" },

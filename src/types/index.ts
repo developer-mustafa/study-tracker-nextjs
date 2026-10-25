@@ -14,8 +14,97 @@ export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
 export type PlanStatus = 'planned' | 'in_progress' | 'completed' | 'paused';
 
-export type SubscriptionTier = 'free' | 'pro' | 'premium';
+export type SubscriptionTier = 'free' | 'pro' | 'premium' | 'academy';
 export type SubscriptionStatus = 'free' | 'active' | 'trialing' | 'past_due' | 'canceled' | 'expired';
+
+export type TenantRole = 'owner' | 'admin' | 'mentor' | 'student';
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'academy' | 'coaching' | 'study_group' | 'institution' | 'personal';
+  ownerId: string;
+  ownerEmail: string;
+  description?: string;
+  logo?: string;
+  subscriptionPlanId: string; // 'free' | 'pro' | 'premium' | 'academy'
+  subscriptionStatus: 'active' | 'trialing' | 'expired' | 'suspended';
+  billingCycle: 'monthly' | 'yearly';
+  planExpiresAt?: string;
+  maxMembers: number;
+  memberCount: number;
+  isSuspended: boolean;
+  suspendedReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TenantMember {
+  id: string;
+  tenantId: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  role: TenantRole;
+  joinedAt: string;
+  avatarUrl?: string;
+}
+
+export type PaymentGatewayType = 'bkash' | 'nagad' | 'rocket';
+
+export interface PaymentGatewayConfig {
+  id: PaymentGatewayType;
+  name: string;
+  banglaName: string;
+  accountType: 'merchant' | 'personal' | 'agent';
+  accountNumber: string;
+  isActive: boolean;
+  instructions: string;
+  qrCodeUrl?: string;
+  feePercentage: number;
+  color: string;
+  bgLight: string;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  tagline: string;
+  priceMonthly: number;
+  priceYearly: number;
+  maxStudents: number;
+  maxStudyPlans: number;
+  popular?: boolean;
+  isActive: boolean;
+  features: string[];
+  btnLabel: string;
+  updatedAt?: string;
+}
+
+export interface PaymentTransaction {
+  id: string;
+  tenantId?: string;
+  tenantName?: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  gateway: PaymentGatewayType;
+  senderNumber: string;
+  trxId: string;
+  planId: string;
+  planName: string;
+  billingCycle: 'monthly' | 'yearly';
+  amount: number;
+  currency: 'BDT';
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  createdAt: string;
+}
 
 export interface UserProfile {
   uid: string;
@@ -29,7 +118,12 @@ export interface UserProfile {
   dailyGoalMinutes: number;
   weeklyGoalMinutes: number;
   onboardingCompleted: boolean;
-  role: 'student' | 'admin';
+  role: 'student' | 'platform_admin' | 'admin';
+  isBlocked?: boolean;
+  blockedReason?: string;
+  blockedAt?: string;
+  activeTenantId?: string;
+  tenantIds?: string[];
   subscriptionTier: SubscriptionTier;
   subscriptionStatus: SubscriptionStatus;
   createdAt: string;
@@ -39,6 +133,7 @@ export interface UserProfile {
 export interface Subject {
   id: string;
   userId: string;
+  tenantId?: string;
   name: string;
   color: string;
   icon: string;
@@ -59,6 +154,7 @@ export interface StudyTopic {
 export interface StudyPlan {
   id: string;
   userId: string;
+  tenantId?: string;
   title: string;
   description: string;
   subjectIds: string[];
@@ -76,6 +172,7 @@ export interface StudyPlan {
 export interface Task {
   id: string;
   userId: string;
+  tenantId?: string;
   title: string;
   description?: string;
   subjectId?: string;
@@ -92,6 +189,7 @@ export interface Task {
 export interface FocusSession {
   id: string;
   userId: string;
+  tenantId?: string;
   mode: TimerMode;
   plannedDurationMinutes: number;
   actualDurationSeconds: number;
@@ -129,6 +227,7 @@ export interface DailyStat {
 export interface Note {
   id: string;
   userId: string;
+  tenantId?: string;
   title: string;
   content: string;
   subjectId?: string;
@@ -147,13 +246,13 @@ export interface Achievement {
   requiredCount: number;
   unlockedAt?: string;
   isUnlocked: boolean;
-  progress: number; // e.g. 3 out of 5
+  progress: number;
 }
 
 export interface AppNotification {
   id: string;
   userId: string;
-  type: 'reminder' | 'session_completed' | 'deadline' | 'goal_achieved' | 'achievement_unlocked' | 'subscription_update';
+  type: 'reminder' | 'session_completed' | 'deadline' | 'goal_achieved' | 'achievement_unlocked' | 'subscription_update' | 'payment_status';
   title: string;
   message: string;
   isRead: boolean;

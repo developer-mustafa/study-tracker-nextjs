@@ -7,11 +7,20 @@ import {
   Database,
   CheckCircle2,
   AlertTriangle,
+  Bell,
+  BellRing,
+  BellOff,
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { FocusStudyStore } from '../../lib/storage/store';
 import { isFirebaseConfigured } from '../../lib/firebase/client';
+import {
+  getBrowserNotificationStatus,
+  requestBrowserNotificationPermission,
+  triggerBreakNotification,
+  NotificationSupportStatus,
+} from '../../lib/utils/notifications';
 
 export function SettingsView() {
   const { theme, setTheme } = useTheme();
@@ -23,6 +32,28 @@ export function SettingsView() {
   const [weeklyGoalMinutes, setWeeklyGoalMinutes] = useState(user.weeklyGoalMinutes);
   const [timezone] = useState(user.timezone || 'Asia/Dhaka');
   const [saveToast, setSaveToast] = useState(false);
+  const [notifStatus, setNotifStatus] = useState<NotificationSupportStatus>('default');
+
+  React.useEffect(() => {
+    setNotifStatus(getBrowserNotificationStatus());
+  }, []);
+
+  const handleTestOrRequestNotification = async () => {
+    if (notifStatus === 'granted') {
+      triggerBreakNotification(25, 'বাংলা সাহিত্য');
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 3000);
+      return;
+    }
+
+    const res = await requestBrowserNotificationPermission();
+    setNotifStatus(res);
+    if (res === 'granted') {
+      triggerBreakNotification(25, 'বাংলা সাহিত্য');
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 3000);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,6 +234,58 @@ export function SettingsView() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Browser Notification Settings Card */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#0D1B32] border border-[#E6EAF2] dark:border-[#243754] shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-[#E6EAF2] dark:border-[#243754]">
+            <div className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-[#5B5CE2]" />
+              <h3 className="font-bold text-base text-[#17233F] dark:text-[#F1F5FF]">
+                ব্রাউজার বিরতি নোটিফিকেশন (Break Alert)
+              </h3>
+            </div>
+            {notifStatus === 'granted' ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                সক্রিয় (Allowed)
+              </span>
+            ) : notifStatus === 'denied' ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                ব্লক করা (Blocked)
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                অনুমতি প্রয়োজন
+              </span>
+            )}
+          </div>
+
+          <p className="text-xs text-[#77839B] dark:text-[#A7B5CC] leading-relaxed">
+            ফোকাস সেশন নির্ধারিত সময়সীমায় পৌঁছালে এটি স্বয়ংক্রিয়ভাবে একটি ব্রাউজার নোটিফিকেশন পাঠাবে ("বিরতি নেওয়ার সময় হয়েছে! ☕")। আপনি ব্রাউজারের অন্য ট্যাবে থাকলেও এই রিমাইন্ডার পাবেন।
+          </p>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <div className="text-[11px] text-[#77839B] dark:text-[#A7B5CC]">
+              * দ্রষ্টব্য: ব্রাউজার সম্পূর্ণ বন্ধ থাকলে নোটিফিকেশন আসবে না।
+            </div>
+
+            <button
+              type="button"
+              onClick={handleTestOrRequestNotification}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                notifStatus === 'granted'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
+                  : 'bg-gradient-to-r from-[#5B5CE2] to-[#8B5CF6] text-white shadow-md hover:scale-[1.02] active:scale-[0.98]'
+              }`}
+            >
+              <BellRing className="w-3.5 h-3.5" />
+              <span>
+                {notifStatus === 'granted'
+                  ? 'টেস্ট নোটিফিকেশন পাঠান'
+                  : 'নোটিফিকেশন অনুমতি দিন'}
+              </span>
+            </button>
           </div>
         </div>
 

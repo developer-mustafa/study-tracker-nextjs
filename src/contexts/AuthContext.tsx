@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { UserProfile, StudyLevel } from '../types';
+import { UserProfile, StudyLevel, Tenant } from '../types';
 import { FocusStudyStore, useFocusStudyData } from '../lib/storage/store';
 import {
   signInWithGoogle as firebaseGoogleSignIn,
@@ -10,9 +10,16 @@ import {
 
 interface AuthContextType {
   user: UserProfile;
+  isPlatformAdmin: boolean;
+  isBlocked: boolean;
+  activeTenant: Tenant;
+  tenants: Tenant[];
   isFirebaseActive: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  switchUser: (uid: string) => void;
+  switchTenant: (tenantId: string) => void;
+  createTenant: (data: { name: string; type: 'academy' | 'coaching' | 'study_group' | 'institution' | 'personal'; description?: string }) => Tenant;
   updateProfile: (updates: Partial<UserProfile>) => void;
   completeOnboarding: (data: {
     displayName: string;
@@ -28,8 +35,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useFocusStudyData();
+  const { user, tenants, activeTenant } = useFocusStudyData();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const isPlatformAdmin =
+    user.email === 'mustafa.rahman.official@gmail.com' ||
+    user.email === 'mustafarahman792@gmail.com' ||
+    user.role === 'platform_admin';
+
+  const isBlocked = Boolean(user.isBlocked);
 
   useEffect(() => {
     if (!isFirebaseConfigured) return;
@@ -37,12 +51,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = subscribeToAuthChanges((fbUser) => {
       if (fbUser) {
         const currentUser = FocusStudyStore.getUser();
+        const isAdminEmail =
+          fbUser.email === 'mustafa.rahman.official@gmail.com' ||
+          fbUser.email === 'mustafarahman792@gmail.com';
         const updated: UserProfile = {
           ...currentUser,
           uid: fbUser.uid,
           email: fbUser.email || currentUser.email,
           displayName: fbUser.displayName || currentUser.displayName,
           photoURL: fbUser.photoURL || currentUser.photoURL,
+          role: isAdminEmail ? 'platform_admin' : currentUser.role,
           updatedAt: new Date().toISOString(),
         };
         FocusStudyStore.setUser(updated);
@@ -57,12 +75,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isFirebaseConfigured) {
         await firebaseGoogleSignIn();
       } else {
-        // Instant simulated demo login for UI verification
+        // Fallback demo simulation
         const currentUser = FocusStudyStore.getUser();
         FocusStudyStore.setUser({
           ...currentUser,
-          displayName: 'মুস্তাফা রহমান (Google Verified)',
-          email: 'mustafarahman792@gmail.com',
+          displayName: 'মুস্তাফা রহমান (প্ল্যাটফর্ম অ্যাডমিন)',
+          email: 'mustafa.rahman.official@gmail.com',
+          role: 'platform_admin',
           updatedAt: new Date().toISOString(),
         });
       }
@@ -83,8 +102,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       uid: `guest_${Date.now()}`,
       displayName: 'অতিথি শিক্ষার্থী',
       email: 'guest@focusstudy.app',
+      role: 'student',
+      isBlocked: false,
       updatedAt: new Date().toISOString(),
     });
+  };
+
+  const switchUser = (uid: string) => {
+    FocusStudyStore.switchActiveUser(uid);
+  };
+
+  const switchTenant = (tenantId: string) => {
+    FocusStudyStore.setActiveTenantId(tenantId);
+  };
+
+  const createTenant = (data: {
+    name: string;
+    type: 'academy' | 'coaching' | 'study_group' | 'institution' | 'personal';
+    description?: string;
+  }) => {
+    return FocusStudyStore.createTenant(data);
   };
 
   const updateProfile = (updates: Partial<UserProfile>) => {
@@ -119,9 +156,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        isPlatformAdmin,
+        isBlocked,
+        activeTenant,
+        tenants,
         isFirebaseActive: isFirebaseConfigured,
         signInWithGoogle,
         signOut,
+        switchUser,
+        switchTenant,
+        createTenant,
         updateProfile,
         completeOnboarding,
         openAuthModal: () => setIsAuthModalOpen(true),

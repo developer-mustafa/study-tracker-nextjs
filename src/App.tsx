@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppSidebar, NavTab } from './components/layout/AppSidebar';
 import { AppHeader } from './components/layout/AppHeader';
 import { MobileNav } from './components/layout/MobileNav';
@@ -21,6 +21,7 @@ import { PricingView } from './components/pricing/PricingView';
 import { AdminView } from './components/admin/AdminView';
 import { SettingsView } from './components/settings/SettingsView';
 import { AuthModal } from './components/auth/AuthModal';
+import { BlockedAccountView } from './components/auth/BlockedAccountView';
 import { useFocusStudyData } from './lib/storage/store';
 import { computeDashboardMetrics } from './lib/utils/analytics';
 import { calculateStreak } from './lib/utils/streak';
@@ -31,7 +32,13 @@ function FocusStudyApp() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const { user, sessions, tasks, subjects, achievements } = useFocusStudyData();
+  const { user, isBlocked } = useAuth();
+  const { sessions, tasks, subjects, achievements } = useFocusStudyData();
+
+  // If user is suspended by platform admin, display dedicated suspension view
+  if (isBlocked) {
+    return <BlockedAccountView />;
+  }
 
   const metrics = computeDashboardMetrics(
     sessions,

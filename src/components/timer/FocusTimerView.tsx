@@ -8,6 +8,9 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
+  Bell,
+  BellRing,
+  BellOff,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { TimerMode } from '../../types';
@@ -18,6 +21,12 @@ import {
   resumeTimerState,
   finalizeCompletedSession,
 } from '../../lib/utils/timer';
+import {
+  getBrowserNotificationStatus,
+  requestBrowserNotificationPermission,
+  triggerBreakNotification,
+  NotificationSupportStatus,
+} from '../../lib/utils/notifications';
 import {
   formatSecondsToMS,
   formatBengaliDuration,
@@ -51,6 +60,32 @@ export function FocusTimerView() {
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [sessionNotes, setSessionNotes] = useState<string>('');
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [notifStatus, setNotifStatus] = useState<NotificationSupportStatus>('default');
+
+  useEffect(() => {
+    setNotifStatus(getBrowserNotificationStatus());
+  }, []);
+
+  const handleRequestNotification = async () => {
+    if (notifStatus === 'granted') {
+      const testSub = subjects.find((s) => s.id === selectedSubjectId);
+      triggerBreakNotification(25, testSub?.name);
+      setSuccessToast('ব্রাউজারে বিরতির টেস্ট নোটিফিকেশন পাঠানো হয়েছে!');
+      setTimeout(() => setSuccessToast(null), 4000);
+      return;
+    }
+
+    const status = await requestBrowserNotificationPermission();
+    setNotifStatus(status);
+    if (status === 'granted') {
+      const testSub = subjects.find((s) => s.id === selectedSubjectId);
+      triggerBreakNotification(25, testSub?.name);
+      setSuccessToast('নোটিফিকেশন সক্রিয় হয়েছে! প্রতিটি ফোকাস সেশন শেষে বিরতির সতর্কবার্তা পাবেন।');
+      setTimeout(() => setSuccessToast(null), 4000);
+    } else if (status === 'denied') {
+      alert('ব্রাউজার সেটিংসে নোটিফিকেশন ব্লক করা রয়েছে। অনুগ্রহ করে সাইট সেটিংসে অনুমতি দিন।');
+    }
+  };
 
   // Remaining seconds tick
   const [remaining, setRemaining] = useState<number>(() => {
@@ -179,9 +214,15 @@ export function FocusTimerView() {
     const isStudy = completed.mode === 'focus' || completed.mode === 'custom';
     const durMins = Math.round(completed.actualDurationSeconds / 60);
 
+    // Trigger browser notification for 'time to take a break' alert
+    if (isStudy) {
+      const currentSub = subjects.find((s) => s.id === completed.subjectId);
+      triggerBreakNotification(durMins, currentSub?.name);
+    }
+
     setSuccessToast(
       isStudy
-        ? `দারুণ! ${toBengaliNumber(durMins)} মিনিটের ফোকাস সেশন সফলভাবে সম্পন্ন হয়েছে।`
+        ? `দারুণ! ${toBengaliNumber(durMins)} মিনিটের ফোকাস সেশন সফলভাবে সম্পন্ন হয়েছে। বিরতি নেওয়ার সতর্কবার্তা পাঠানো হয়েছে।`
         : 'বিরতির সময় শেষ। নতুন ফোকাস সেশন শুরু করার প্রস্তুতি নিন!'
     );
 
@@ -268,15 +309,54 @@ export function FocusTimerView() {
 
       {/* Main Timer Display Card */}
       <div className="p-6 md:p-10 rounded-3xl bg-white dark:bg-[#0D1B32] border border-[#E6EAF2] dark:border-[#243754] shadow-md flex flex-col items-center justify-center relative overflow-hidden">
-        {/* Sound toggle button */}
-        <button
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          className="absolute top-6 right-6 p-2 rounded-xl text-[#77839B] dark:text-[#A7B5CC] hover:bg-[#F5F7FC] dark:hover:bg-[#122440]"
-          title={soundEnabled ? 'শব্দ বন্ধ করুন' : 'শব্দ চালু করুন'}
-          aria-label="সাউন্ড টগল"
-        >
-          {soundEnabled ? <Volume2 className="w-5 h-5 text-[#5B5CE2]" /> : <VolumeX className="w-5 h-5" />}
-        </button>
+        {/* Action icons (Notification Alert & Sound) */}
+        <div className="absolute top-6 right-6 flex items-center gap-2">
+          <button
+            onClick={handleRequestNotification}
+            className={`p-2 rounded-xl transition-colors flex items-center gap-1.5 text-xs font-semibold ${
+              notifStatus === 'granted'
+                ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/40'
+                : notifStatus === 'denied'
+                ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/50'
+                : 'text-[#5B5CE2] dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60'
+            }`}
+            title={
+              notifStatus === 'granted'
+                ? 'বিরতি নোটিফিকেশন সক্রিয় (ক্লিক করে টেস্ট নোটিফিকেশন পাঠান)'
+                : notifStatus === 'denied'
+                ? 'ব্রাউজারে নোটিফিকেশন ব্লক করা রয়েছে'
+                : 'সেশন শেষে বিরতির নোটিফিকেশন চালু করুন'
+            }
+            aria-label="বিরতি নোটিফিকেশন অ্যালার্ট"
+          >
+            {notifStatus === 'granted' ? (
+              <>
+                <BellRing className="w-4 h-4 text-emerald-500" />
+                <span className="hidden sm:inline">বিরতি অ্যালার্ট সচল</span>
+              </>
+            ) : notifStatus === 'denied' ? (
+              <>
+                <BellOff className="w-4 h-4 text-rose-500" />
+                <span className="hidden sm:inline">নোটিফিকেশন ব্লক</span>
+              </>
+            ) : (
+              <>
+                <Bell className="w-4 h-4 animate-bounce" />
+                <span className="hidden sm:inline">বিরতি নোটিফিকেশন অন করুন</span>
+              </>
+            )}
+          </button>
+
+          {/* Sound toggle button */}
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="p-2 rounded-xl text-[#77839B] dark:text-[#A7B5CC] hover:bg-[#F5F7FC] dark:hover:bg-[#122440]"
+            title={soundEnabled ? 'শব্দ বন্ধ করুন' : 'শব্দ চালু করুন'}
+            aria-label="সাউন্ড টগল"
+          >
+            {soundEnabled ? <Volume2 className="w-5 h-5 text-[#5B5CE2]" /> : <VolumeX className="w-5 h-5" />}
+          </button>
+        </div>
 
         {/* Circular Ring Timer */}
         <div className="relative w-72 h-72 md:w-80 md:h-80 flex items-center justify-center my-4">
